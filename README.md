@@ -3,8 +3,7 @@ Utilities to place electrodes on a scalp mesh
 
 to install run (in order):
 
-```pip install git+https://github.com/christianbuda/mesh_poisson_disk_sampling```
-```pip install git+https://github.com/christianbuda/electrodes_positions_utils```
+```pip install git+https://github.com/christianbuda/mesh_poisson_disk_sampling git+https://github.com/christianbuda/electrodes_positions_utils```
 
 To use:
 
