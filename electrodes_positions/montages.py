@@ -6,7 +6,7 @@ from mesh_poisson_disk_sampling import poisson_disk_sampling
 
 from .utils.insert_points import add_points
 from .utils.geometry import create_rotation_matrix
-from .utils.point_projection import closest_faces
+from .utils.insert_points import closest_faces
 from .utils.point_picking import optimal_sagittal_plane
 from .utils.point_picking import compute_path
 from .utils.mesh_utils import extract_submesh
