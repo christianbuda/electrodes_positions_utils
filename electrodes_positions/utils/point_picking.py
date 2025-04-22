@@ -7,9 +7,9 @@ import trimesh
 import networkx as nx
 
 
-from utils.mesh_utils import faces_to_pyvista
-from utils.point_projection import project_pointcloud_on_pointcloud
-from utils.mesh_utils import vertex_normal
+from .mesh_utils import faces_to_pyvista
+from .point_projection import project_pointcloud_on_pointcloud
+from .mesh_utils import vertex_normal
 
 
 def pick_fiducials(vertices, faces):
