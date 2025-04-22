@@ -190,10 +190,10 @@ def select_feasible_positions(vertices, faces, outlines, landmarks, positions = 
     else:
         good_el = {}
         for key,val in tqdm(landmarks.items()):
-            if good_el[key] in to_be_removed:
+            if val in to_be_removed:
                 good_el[key] = val
             else:
-                if nx.has_path(G, landmarks['Cz'], good_el[key]):
+                if nx.has_path(G, landmarks['Cz'], val):
                     good_el[key] = val
     return good_el
 
