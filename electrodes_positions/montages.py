@@ -4,12 +4,12 @@ import networkx as nx
 
 from mesh_poisson_disk_sampling import poisson_disk_sampling
 
-from utils.insert_points import add_points
-from utils.geometry import create_rotation_matrix
-from utils.point_projection import closest_faces
-from utils.point_picking import optimal_sagittal_plane
-from utils.point_picking import compute_path
-from utils.mesh_utils import extract_submesh
+from .utils.insert_points import add_points
+from .utils.geometry import create_rotation_matrix
+from .utils.point_projection import closest_faces
+from .utils.point_picking import optimal_sagittal_plane
+from .utils.point_picking import compute_path
+from .utils.mesh_utils import extract_submesh
 
 _all_montages = {
     '10-20':['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T7', 'C3', 'Cz', 'C4', 'T8', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'O2'],
