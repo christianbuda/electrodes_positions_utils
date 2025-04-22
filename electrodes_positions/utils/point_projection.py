@@ -4,20 +4,6 @@ from .geometry import create_rotation_matrices
 from .geometry import create_rotation_matrix
 from .insert_points import add_points
 
-def closest_faces(points, vertices, faces, return_faces = False):
-    # projects the input points on the mesh and returns the corresponding points and faces
-    # if return_faces is True, the index of the face on which the point was projected is returned
-    
-    all_proj = project_pointcloud_on_faces(points, vertices, faces)
-    picked_faces = np.linalg.norm(points[:,np.newaxis]-all_proj, axis = -1).argmin(axis = -1)
-    
-    # projected coordinates
-    out = all_proj[np.arange(len(points)),picked_faces]
-    
-    if return_faces:
-        out = (out, picked_faces)
-    return out
-
 def project_pointcloud_on_faces(points, vertices, faces):
     # this function provides the projection of the input point cloud on each triangle of the input mesh
     # it is unnecessarily convoluted to allow the use of the autograd package to compute gradients
