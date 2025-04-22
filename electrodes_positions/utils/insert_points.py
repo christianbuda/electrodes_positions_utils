@@ -1,6 +1,5 @@
 import numpy as np
 from .mesh_utils import edge_lengths
-from .point_projection import closest_faces
 
 def add_internal_points(vertices, faces, sampled_points, sampled_faces):
     # add sampled points and faces to the mesh
@@ -222,3 +221,18 @@ def add_points(vertices, faces, sampled_points, sampled_faces):
         added_points[which_collinear[i]] = added_pt
     
     return vertices, faces, added_points
+
+
+def closest_faces(points, vertices, faces, return_faces = False):
+    # projects the input points on the mesh and returns the corresponding points and faces
+    # if return_faces is True, the index of the face on which the point was projected is returned
+    
+    all_proj = project_pointcloud_on_faces(points, vertices, faces)
+    picked_faces = np.linalg.norm(points[:,np.newaxis]-all_proj, axis = -1).argmin(axis = -1)
+    
+    # projected coordinates
+    out = all_proj[np.arange(len(points)),picked_faces]
+    
+    if return_faces:
+        out = (out, picked_faces)
+    return out
