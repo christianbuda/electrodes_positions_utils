@@ -1,6 +1,6 @@
 import numpy as np
-from utils.mesh_utils import edge_lengths
-from utils.point_projection import closest_faces
+from .mesh_utils import edge_lengths
+from .point_projection import closest_faces
 
 def add_internal_points(vertices, faces, sampled_points, sampled_faces):
     # add sampled points and faces to the mesh
