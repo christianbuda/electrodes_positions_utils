@@ -154,7 +154,7 @@ def compute_path(points, vertices, faces):
     return np.concatenate(paths)
 
 
-def select_feasible_positions(vertices, faces, positions, landmarks, *args):
+def select_feasible_positions(vertices, faces, outlines, landmarks, positions = None):
     # outputs the subset of positions from the input list that do not enter the paths given in input
     # paths are given as extra args
     
@@ -165,8 +165,8 @@ def select_feasible_positions(vertices, faces, positions, landmarks, *args):
     edges = mesh.edges_unique
 
     to_be_removed = []
-    for outlines in args:
-        to_be_removed.append(compute_path(outlines, vertices, faces))
+    for outline in outlines:
+        to_be_removed.append(compute_path(outline, vertices, faces))
 
     to_be_removed = np.unique(np.concatenate(to_be_removed))
 
@@ -179,14 +179,22 @@ def select_feasible_positions(vertices, faces, positions, landmarks, *args):
     for node in to_be_removed:
         G.remove_edges_from(list(zip([node]*len(G.adj[node]), G.neighbors(node))))
 
-    good_el = []
-    for idx in tqdm(positions):
-        if idx in to_be_removed:
-            good_el.append(idx)
-        else:
-            if nx.has_path(G, landmarks['Cz'], idx):
+    if positions is not None:
+        good_el = []
+        for idx in tqdm(positions):
+            if idx in to_be_removed:
                 good_el.append(idx)
-                
+            else:
+                if nx.has_path(G, landmarks['Cz'], idx):
+                    good_el.append(idx)
+    else:
+        good_el = {}
+        for key,val in tqdm(landmarks.items()):
+            if good_el[key] in to_be_removed:
+                good_el[key] = val
+            else:
+                if nx.has_path(G, landmarks['Cz'], good_el[key]):
+                    good_el[key] = val
     return good_el
 
 def refine_IN_LPA(NAS_idx, IN_idx, RPA_idx, LPA_idx, vertices, faces):
