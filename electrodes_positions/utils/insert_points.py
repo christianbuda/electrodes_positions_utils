@@ -226,7 +226,8 @@ def add_points(vertices, faces, sampled_points, sampled_faces):
 def closest_faces(points, vertices, faces, return_faces = False):
     # projects the input points on the mesh and returns the corresponding points and faces
     # if return_faces is True, the index of the face on which the point was projected is returned
-    
+
+    from .point_projection import project_pointcloud_on_faces
     all_proj = project_pointcloud_on_faces(points, vertices, faces)
     picked_faces = np.linalg.norm(points[:,np.newaxis]-all_proj, axis = -1).argmin(axis = -1)
     
