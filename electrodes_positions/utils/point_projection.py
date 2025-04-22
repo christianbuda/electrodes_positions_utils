@@ -1,8 +1,8 @@
 import numpy as np
 
-from utils.geometry import create_rotation_matrices
-from utils.geometry import create_rotation_matrix
-from utils.insert_points import add_points
+from .geometry import create_rotation_matrices
+from .geometry import create_rotation_matrix
+from .insert_points import add_points
 
 def closest_faces(points, vertices, faces, return_faces = False):
     # projects the input points on the mesh and returns the corresponding points and faces
