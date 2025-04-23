@@ -160,7 +160,7 @@ def select_feasible_positions(vertices, faces, outlines, landmarks, positions = 
     
     if project_outlines:
         for i, outline in enumerate(outlines):
-            outlines[i] = project_pointcloud_on_pointcloud(outline, vertices, return_positions = False, return_indices = True)
+            outlines[i] = project_pointcloud_on_pointcloud(outline, vertices, return_positions = False, return_indices = True)[0]
     
     # create a graph from the mesh to allow fast shortest path computations
     mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
