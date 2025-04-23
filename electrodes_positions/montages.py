@@ -747,21 +747,12 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     
     
     all_pos = []
-    
-    (RPA_idx, LPA_idx, NAS_idx, IN_idx) = fiducials
-    
-    all_landmarks['Nz'] = NAS_idx
-    all_landmarks['Iz'] = IN_idx
-    all_landmarks['RPA'] = RPA_idx
-    all_landmarks['LPA'] = LPA_idx
-
-    Cz, _ = find_Cz(vertices, faces, fiducials=fiducials, epsilon = 1e-5, verbose = False)
 
     ###################################################################
     # sagittal line through Iz Cz Nz
     start_point = all_landmarks['Iz']
     end_point = all_landmarks['Nz']
-    plane_normal = np.cross(vertices[start_point]-Cz, vertices[end_point]-Cz)
+    plane_normal = np.cross(vertices[start_point]-all_landmarks['Cz'], vertices[end_point]-all_landmarks['Cz'])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles(np.linspace(0,100,10*subdivisions, endpoint = False)[1:], path, path_faces)
 
