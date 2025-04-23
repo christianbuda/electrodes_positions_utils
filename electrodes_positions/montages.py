@@ -971,7 +971,7 @@ def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_elec
     newverts, newfac = extract_submesh(vertices, faces, submesh)
 
     print('Performing Poisson sampling on the mesh')
-    newverts, newfac, sampled_electrodes = poisson_disk_sampling(newverts, newfac, min_dist=min_dist, num_dip = num_electrodes, generator = generator, remesh = False)
+    newverts, newfac, sampled_electrodes = poisson_disk_sampling(newverts, newfac, min_dist=min_dist, num_points = num_electrodes, generator = generator, remesh = False)
 
     # project sampled points on old mesh
     points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
