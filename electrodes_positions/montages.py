@@ -922,11 +922,15 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
 
 
 
-def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_electrodes = None, generator = None, return_indices = False, return_landmarks = True):
+def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_electrodes = None, sampling = 'poisson', generator = None, return_indices = False, return_landmarks = True):
     # creates a random montage on the input head
     # the electrodes are placed above the lowest line of electrodes in the 10-10 system, i.e. above the circle identified by [Oz T10 Nz T9 Oz]
     # min_dist: minimum distance between electrodes
     # num_electrodes: desired number of electrodes (approximate)
+
+    assert sampling in ['poisson', 'uniform'], 'sampling must be either "poisson", for Poisson disk sampling, or "uniform", for uniform sampling'
+    if sampling == 'uniform':
+        assert isinstance(num_electrodes, int), 'You must specify the number of electrodes when sampling uniformly!'
     
     # compute 10-5 system
     vertices, faces, all_landmarks = create_standard_montage(vertices, faces, fiducials = fiducials, system = 'all', return_indices = True)
@@ -970,8 +974,11 @@ def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_elec
 
     newverts, newfac = extract_submesh(vertices, faces, submesh)
 
-    print('Performing Poisson sampling on the mesh')
-    newverts, newfac, sampled_electrodes = poisson_disk_sampling(newverts, newfac, min_dist=min_dist, num_points = num_electrodes, generator = generator, remesh = False)
+    print('Performing Sampling on the mesh')
+    if sampling == 'poisson':
+        newverts, newfac, sampled_electrodes = poisson_disk_sampling(newverts, newfac, min_dist=min_dist, num_points = num_electrodes, generator = generator, remesh = False)
+    elif sampling == 'uniform':
+        newverts, newfac, sampled_electrodes = uniform_sampling(newverts, newfac, num_points = num_electrodes, remesh = False, generator = generator)
 
     # project sampled points on old mesh
     points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
