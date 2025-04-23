@@ -174,13 +174,9 @@ def add_points(vertices, faces, sampled_points, sampled_faces):
     # add normal_points
     vertices, faces, newly_added_points = _safe_add_points(vertices, faces, sampled_points[which_not_collinear], sampled_faces[which_not_collinear])
     
-    # NO, bisogna considerare anche il caso in cui c'è qualche punto che coincide con un vertice esistente prima di uscire
-    # if np.count_nonzero(which_collinear) == 0:
-    #     print(f'out {len(newly_added_points)}')
-    #     return vertices, faces, newly_added_points
     
     # save position of added points
-    added_points = np.zeros(len(which_collinear), dtype = int)
+    added_points = np.zeros(len(sampled_points), dtype = int)
     added_points[which_not_collinear] = newly_added_points
     
     # old
@@ -191,34 +187,35 @@ def add_points(vertices, faces, sampled_points, sampled_faces):
     if which_vertex.sum()>0:
         added_points[which_vertex] = np.argmin(np.linalg.norm(sampled_points[which_vertex][np.newaxis]-vertices[:,np.newaxis], axis = -1), axis = 0)
     
-    sampled_points = sampled_points[which_collinear]
-    
-    # sampled_facestrue = closest_faces(sampled_points, vertices, faces, return_faces=True)[1]
-    faces_to_check = np.concatenate([sampled_faces, np.arange(nfaces, len(faces))])
-    
-    sampled_faces = closest_faces(sampled_points, vertices, faces[faces_to_check], return_faces=True)[1]
-    
-    sampled_faces = faces_to_check[sampled_faces]
-    
-    # _, counts = np.unique(sampled_faces, return_counts  = True)
-    # if np.any(counts>2):
-    #     raise NotImplementedError('More than one collinear point in the same face, try remeshing or implement the logic to handle this.')
-    
-    
-    which_collinear = np.nonzero(which_collinear)[0]
-    
-    nfaces = len(faces)
-    
-    # add sampled points and faces to the mesh
-    for i in range(len(sampled_points)):
-        # project on faces
-        faces_to_check = np.concatenate([sampled_faces, np.arange(nfaces, len(faces))])
-        sampled_face = closest_faces(sampled_points[[i]], vertices, faces[faces_to_check], return_faces=True)[1][0]
-        sampled_face = faces_to_check[sampled_face]
+    if which_collinear.sum()>0:
+        sampled_points = sampled_points[which_collinear]
         
-        # sampled_facetrue = closest_faces(sampled_points[[i]], vertices, faces, return_faces=True)[1][0]
-        vertices, faces, added_pt = add_single_point(vertices, faces, sampled_points[i], sampled_face)
-        added_points[which_collinear[i]] = added_pt
+        # sampled_facestrue = closest_faces(sampled_points, vertices, faces, return_faces=True)[1]
+        faces_to_check = np.concatenate([sampled_faces, np.arange(nfaces, len(faces))])
+        
+        sampled_faces = closest_faces(sampled_points, vertices, faces[faces_to_check], return_faces=True)[1]
+        
+        sampled_faces = faces_to_check[sampled_faces]
+        
+        # _, counts = np.unique(sampled_faces, return_counts  = True)
+        # if np.any(counts>2):
+        #     raise NotImplementedError('More than one collinear point in the same face, try remeshing or implement the logic to handle this.')
+        
+        
+        which_collinear = np.nonzero(which_collinear)[0]
+        
+        nfaces = len(faces)
+        
+        # add sampled points and faces to the mesh
+        for i in range(len(sampled_points)):
+            # project on faces
+            faces_to_check = np.concatenate([sampled_faces, np.arange(nfaces, len(faces))])
+            sampled_face = closest_faces(sampled_points[[i]], vertices, faces[faces_to_check], return_faces=True)[1][0]
+            sampled_face = faces_to_check[sampled_face]
+            
+            # sampled_facetrue = closest_faces(sampled_points[[i]], vertices, faces, return_faces=True)[1][0]
+            vertices, faces, added_pt = add_single_point(vertices, faces, sampled_points[i], sampled_face)
+            added_points[which_collinear[i]] = added_pt
     
     return vertices, faces, added_points
 
