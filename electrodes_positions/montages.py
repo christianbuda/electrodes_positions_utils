@@ -752,7 +752,7 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     # sagittal line through Iz Cz Nz
     start_point = all_landmarks['Iz']
     end_point = all_landmarks['Nz']
-    plane_normal = np.cross(vertices[start_point]-all_landmarks['Cz'], vertices[end_point]-all_landmarks['Cz'])
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles(np.linspace(0,100,10*subdivisions, endpoint = False)[1:], path, path_faces)
 
