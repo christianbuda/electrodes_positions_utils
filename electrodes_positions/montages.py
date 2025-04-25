@@ -1216,7 +1216,7 @@ def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_elec
 
     submesh = np.setdiff1d(np.arange(len(vertices)), to_be_removed)
 
-    newverts, newfac = extract_submesh(vertices, faces, submesh)
+    newverts, newfac, orig_faces = extract_submesh(vertices, faces, submesh, return_faces = True)
 
     print('Performing Sampling on the mesh')
     if sampling == 'poisson':
@@ -1226,9 +1226,12 @@ def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_elec
         
     # project sampled points on old mesh
     print('Projecting sampled points on original mesh')
-    # points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
-    sampled_faces = np.array(sampled_faces)
-    vertices, faces, all_pos = add_points(vertices, faces, newverts[sampled_electrodes], sampled_faces)
+    points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
+    sampled_faces = orig_faces[np.array(sampled_faces)]
+    print(sampled_faces, picked_faces)
+    assert np.all(sampled_faces == picked_faces)
+    
+    vertices, faces, all_pos = add_points(vertices, faces, newverts[sampled_electrodes], picked_faces)
 
     if not return_indices:
         out = (vertices[all_pos],)

@@ -24,12 +24,14 @@ def vertex_normal(vertex, vertices, faces):
     normals = np.cross(B-A, C-A)
     return np.mean(normals, axis = 0)
 
-def extract_submesh(vertices, faces, new_vertices):
+def extract_submesh(vertices, faces, new_vertices, return_faces = False):
     # extract submesh from list of new vertices
     
     mask = np.zeros(len(vertices), dtype=bool)
     mask[new_vertices] = True
-    faces = faces[mask[faces].all(axis = -1)]
+    mask = mask[faces].all(axis = -1)
+    orig_faces = np.nonzero(mask)[0]
+    faces = faces[orig_faces]
     
     old_vertices = -np.ones(len(vertices), dtype = int)
     old_vertices[new_vertices] = np.arange(len(new_vertices))
@@ -38,4 +40,7 @@ def extract_submesh(vertices, faces, new_vertices):
     
     assert np.all(new_faces>=0)
 
-    return vertices[new_vertices], new_faces
+    if return_faces
+        return vertices[new_vertices], new_faces, return_faces
+    else:
+        return vertices[new_vertices], new_faces
