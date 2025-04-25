@@ -1218,20 +1218,16 @@ def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_elec
 
     newverts, newfac, orig_faces = extract_submesh(vertices, faces, submesh, return_faces = True)
 
-    print('Performing Sampling on the mesh')
+    print('Performing Sampling on the mesh...')
     if sampling == 'poisson':
         newverts, newfac, sampled_electrodes, sampled_faces = poisson_disk_sampling(newverts, newfac, min_dist=min_dist, num_points = num_electrodes, return_original_faces = True, generator = generator, remesh = False)
     elif sampling == 'uniform':
         newverts, newfac, sampled_electrodes, sampled_faces = uniform_sampling(newverts, newfac, num_points = num_electrodes, remesh = False, return_original_faces = True, generator = generator)
         
     # project sampled points on old mesh
-    print('Projecting sampled points on original mesh')
-    points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
+    print('Projecting sampled points on original mesh...')
     sampled_faces = orig_faces[np.array(sampled_faces)]
-    print(sampled_faces, picked_faces)
-    assert np.all(sampled_faces == picked_faces)
-    
-    vertices, faces, all_pos = add_points(vertices, faces, newverts[sampled_electrodes], picked_faces)
+    vertices, faces, all_pos = add_points(vertices, faces, newverts[sampled_electrodes], sampled_faces)
 
     if not return_indices:
         out = (vertices[all_pos],)
