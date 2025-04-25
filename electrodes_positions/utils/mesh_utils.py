@@ -40,7 +40,7 @@ def extract_submesh(vertices, faces, new_vertices, return_faces = False):
     
     assert np.all(new_faces>=0)
 
-    if return_faces
+    if return_faces:
         return vertices[new_vertices], new_faces, return_faces
     else:
         return vertices[new_vertices], new_faces
