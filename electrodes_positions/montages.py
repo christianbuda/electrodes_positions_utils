@@ -1227,6 +1227,7 @@ def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_elec
     # project sampled points on old mesh
     print('Projecting sampled points on original mesh')
     # points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
+    sampled_faces = np.array(sampled_faces)
     vertices, faces, all_pos = add_points(vertices, faces, newverts[sampled_electrodes], sampled_faces)
 
     if not return_indices:
