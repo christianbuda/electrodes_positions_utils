@@ -2,7 +2,7 @@ import numpy as np
 import trimesh
 import networkx as nx
 
-from mesh_poisson_disk_sampling import poisson_disk_sampling
+from mesh_poisson_disk_sampling import poisson_disk_sampling, uniform_sampling
 
 from .utils.insert_points import add_points
 from .utils.geometry import create_rotation_matrix
@@ -414,12 +414,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through T8 Cz T7
-    names = ['T8h', 'C6', 'C6h', 'C4', 'C4h', 'C2', 'C2h', 'C1h', 'C1', 'C3h', 'C3', 'C5h', 'C5', 'T7h']
+    # right part
+    names = ['T8h', 'C6', 'C6h', 'C4', 'C4h', 'C2', 'C2h']
     start_point = all_landmarks['T8']
     end_point = all_landmarks['T7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['Cz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+        
+    # left part
+    names = ['C1h', 'C1', 'C3h', 'C3', 'C5h', 'C5', 'T7h']
+    start_point = all_landmarks['T8']
+    end_point = all_landmarks['T7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['Cz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -501,12 +516,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through POO8 POOz POO7
-    names = ['POO8h', 'POO6', 'POO6h', 'POO4', 'POO4h', 'POO2', 'POO2h', 'POO1h', 'POO1', 'POO3h', 'POO3', 'POO5h', 'POO5', 'POO7h']
+    # right part
+    names = ['POO8h', 'POO6', 'POO6h', 'POO4', 'POO4h', 'POO2', 'POO2h']
     start_point = all_landmarks['POO8']
     end_point = all_landmarks['POO7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POOz']], vertices[end_point]-vertices[all_landmarks['POOz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['POOz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['POO1h', 'POO1', 'POO3h', 'POO3', 'POO5h', 'POO5', 'POO7h']
+    start_point = all_landmarks['POO8']
+    end_point = all_landmarks['POO7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POOz']], vertices[end_point]-vertices[all_landmarks['POOz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['POOz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -515,12 +545,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through PO8 POz PO7
-    names = ['PO8h', 'PO6', 'PO6h', 'PO4', 'PO4h', 'PO2', 'PO2h', 'PO1h', 'PO1', 'PO3h', 'PO3', 'PO5h', 'PO5', 'PO7h']
+    # right part
+    names = ['PO8h', 'PO6', 'PO6h', 'PO4', 'PO4h', 'PO2', 'PO2h']
     start_point = all_landmarks['PO8']
     end_point = all_landmarks['PO7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POz']], vertices[end_point]-vertices[all_landmarks['POz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['POz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['PO1h', 'PO1', 'PO3h', 'PO3', 'PO5h', 'PO5', 'PO7h']
+    start_point = all_landmarks['PO8']
+    end_point = all_landmarks['PO7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POz']], vertices[end_point]-vertices[all_landmarks['POz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['POz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -529,12 +574,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through PPO8 PPOz PPO7
-    names = ['PPO8h', 'PPO6', 'PPO6h', 'PPO4', 'PPO4h', 'PPO2', 'PPO2h', 'PPO1h', 'PPO1', 'PPO3h', 'PPO3', 'PPO5h', 'PPO5', 'PPO7h']
+    # right part
+    names = ['PPO8h', 'PPO6', 'PPO6h', 'PPO4', 'PPO4h', 'PPO2', 'PPO2h']
     start_point = all_landmarks['PPO8']
     end_point = all_landmarks['PPO7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['PPOz']], vertices[end_point]-vertices[all_landmarks['PPOz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['PPOz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+        
+    # left part
+    names = ['PPO1h', 'PPO1', 'PPO3h', 'PPO3', 'PPO5h', 'PPO5', 'PPO7h']
+    start_point = all_landmarks['PPO8']
+    end_point = all_landmarks['PPO7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['PPOz']], vertices[end_point]-vertices[all_landmarks['PPOz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['PPOz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -543,12 +603,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through P8 Pz P7
-    names = ['P8h', 'P6', 'P6h', 'P4', 'P4h', 'P2', 'P2h', 'P1h', 'P1', 'P3h', 'P3', 'P5h', 'P5', 'P7h']
+    # right part
+    names = ['P8h', 'P6', 'P6h', 'P4', 'P4h', 'P2', 'P2h']
     start_point = all_landmarks['P8']
     end_point = all_landmarks['P7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Pz']], vertices[end_point]-vertices[all_landmarks['Pz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['Pz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['P1h', 'P1', 'P3h', 'P3', 'P5h', 'P5', 'P7h']
+    start_point = all_landmarks['P8']
+    end_point = all_landmarks['P7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Pz']], vertices[end_point]-vertices[all_landmarks['Pz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['Pz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -557,12 +632,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through TPP8 CPPz TPP7
-    names = ['TPP8h', 'CPP6', 'CPP6h', 'CPP4', 'CPP4h', 'CPP2', 'CPP2h', 'CPP1h', 'CPP1', 'CPP3h', 'CPP3', 'CPP5h', 'CPP5', 'TPP7h']
+    # right part
+    names = ['TPP8h', 'CPP6', 'CPP6h', 'CPP4', 'CPP4h', 'CPP2', 'CPP2h']
     start_point = all_landmarks['TPP8']
     end_point = all_landmarks['TPP7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPPz']], vertices[end_point]-vertices[all_landmarks['CPPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['CPPz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+        
+    # left part
+    names = ['CPP1h', 'CPP1', 'CPP3h', 'CPP3', 'CPP5h', 'CPP5', 'TPP7h']
+    start_point = all_landmarks['TPP8']
+    end_point = all_landmarks['TPP7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPPz']], vertices[end_point]-vertices[all_landmarks['CPPz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['CPPz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -571,12 +661,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through TP8 CPz TP7
-    names = ['TP8h', 'CP6', 'CP6h', 'CP4', 'CP4h', 'CP2', 'CP2h', 'CP1h', 'CP1', 'CP3h', 'CP3', 'CP5h', 'CP5', 'TP7h']
+    # right part
+    names = ['TP8h', 'CP6', 'CP6h', 'CP4', 'CP4h', 'CP2', 'CP2h']
     start_point = all_landmarks['TP8']
     end_point = all_landmarks['TP7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPz']], vertices[end_point]-vertices[all_landmarks['CPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['CPz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['CP1h', 'CP1', 'CP3h', 'CP3', 'CP5h', 'CP5', 'TP7h']
+    start_point = all_landmarks['TP8']
+    end_point = all_landmarks['TP7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPz']], vertices[end_point]-vertices[all_landmarks['CPz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['CPz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -585,12 +690,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through TTP8 CCPz TTP7
-    names = ['TTP8h', 'CCP6', 'CCP6h', 'CCP4', 'CCP4h', 'CCP2', 'CCP2h', 'CCP1h', 'CCP1', 'CCP3h', 'CCP3', 'CCP5h', 'CCP5', 'TTP7h']
+    # right part
+    names = ['TTP8h', 'CCP6', 'CCP6h', 'CCP4', 'CCP4h', 'CCP2', 'CCP2h']
     start_point = all_landmarks['TTP8']
     end_point = all_landmarks['TTP7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CCPz']], vertices[end_point]-vertices[all_landmarks['CCPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['CCPz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['CCP1h', 'CCP1', 'CCP3h', 'CCP3', 'CCP5h', 'CCP5', 'TTP7h']
+    start_point = all_landmarks['TTP8']
+    end_point = all_landmarks['TTP7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CCPz']], vertices[end_point]-vertices[all_landmarks['CCPz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['CCPz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -599,12 +719,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through FTT8 FCCz FTT7
-    names = ['FTT8h', 'FCC6', 'FCC6h', 'FCC4', 'FCC4h', 'FCC2', 'FCC2h', 'FCC1h', 'FCC1', 'FCC3h', 'FCC3', 'FCC5h', 'FCC5', 'FTT7h']
+    # right part
+    names = ['FTT8h', 'FCC6', 'FCC6h', 'FCC4', 'FCC4h', 'FCC2', 'FCC2h']
     start_point = all_landmarks['FTT8']
     end_point = all_landmarks['FTT7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCCz']], vertices[end_point]-vertices[all_landmarks['FCCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['FCCz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['FCC1h', 'FCC1', 'FCC3h', 'FCC3', 'FCC5h', 'FCC5', 'FTT7h']
+    start_point = all_landmarks['FTT8']
+    end_point = all_landmarks['FTT7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCCz']], vertices[end_point]-vertices[all_landmarks['FCCz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['FCCz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -613,12 +748,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through FT8 FCz FT7
-    names = ['FT8h', 'FC6', 'FC6h', 'FC4', 'FC4h', 'FC2', 'FC2h', 'FC1h', 'FC1', 'FC3h', 'FC3', 'FC5h', 'FC5', 'FT7h']
+    # right part
+    names = ['FT8h', 'FC6', 'FC6h', 'FC4', 'FC4h', 'FC2', 'FC2h']
     start_point = all_landmarks['FT8']
     end_point = all_landmarks['FT7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCz']], vertices[end_point]-vertices[all_landmarks['FCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['FCz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['FC1h', 'FC1', 'FC3h', 'FC3', 'FC5h', 'FC5', 'FT7h']
+    start_point = all_landmarks['FT8']
+    end_point = all_landmarks['FT7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCz']], vertices[end_point]-vertices[all_landmarks['FCz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['FCz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -627,12 +777,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through FFT8 FFCz FFT7
-    names = ['FFT8h', 'FFC6', 'FFC6h', 'FFC4', 'FFC4h', 'FFC2', 'FFC2h', 'FFC1h', 'FFC1', 'FFC3h', 'FFC3', 'FFC5h', 'FFC5', 'FFT7h']
+    # right part
+    names = ['FFT8h', 'FFC6', 'FFC6h', 'FFC4', 'FFC4h', 'FFC2', 'FFC2h']
     start_point = all_landmarks['FFT8']
     end_point = all_landmarks['FFT7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FFCz']], vertices[end_point]-vertices[all_landmarks['FFCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['FFCz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['FFC1h', 'FFC1', 'FFC3h', 'FFC3', 'FFC5h', 'FFC5', 'FFT7h']
+    start_point = all_landmarks['FFT8']
+    end_point = all_landmarks['FFT7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FFCz']], vertices[end_point]-vertices[all_landmarks['FFCz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['FFCz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -641,12 +806,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through F8 Fz F7
-    names = ['F8h', 'F6', 'F6h', 'F4', 'F4h', 'F2', 'F2h', 'F1h', 'F1', 'F3h', 'F3', 'F5h', 'F5', 'F7h']
+    # right part
+    names = ['F8h', 'F6', 'F6h', 'F4', 'F4h', 'F2', 'F2h']
     start_point = all_landmarks['F8']
     end_point = all_landmarks['F7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Fz']], vertices[end_point]-vertices[all_landmarks['Fz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['Fz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['F1h', 'F1', 'F3h', 'F3', 'F5h', 'F5', 'F7h']
+    start_point = all_landmarks['F8']
+    end_point = all_landmarks['F7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Fz']], vertices[end_point]-vertices[all_landmarks['Fz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['Fz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -655,12 +835,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through AFF8 AFFz AFF7
-    names = ['AFF8h', 'AFF6', 'AFF6h', 'AFF4', 'AFF4h', 'AFF2', 'AFF2h', 'AFF1h', 'AFF1', 'AFF3h', 'AFF3', 'AFF5h', 'AFF5', 'AFF7h']
+    # right part
+    names = ['AFF8h', 'AFF6', 'AFF6h', 'AFF4', 'AFF4h', 'AFF2', 'AFF2h']
     start_point = all_landmarks['AFF8']
     end_point = all_landmarks['AFF7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFFz']], vertices[end_point]-vertices[all_landmarks['AFFz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['AFFz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['AFF1h', 'AFF1', 'AFF3h', 'AFF3', 'AFF5h', 'AFF5', 'AFF7h']
+    start_point = all_landmarks['AFF8']
+    end_point = all_landmarks['AFF7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFFz']], vertices[end_point]-vertices[all_landmarks['AFFz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['AFFz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -669,12 +864,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through AF8 AFz AF7
-    names = ['AF8h', 'AF6', 'AF6h', 'AF4', 'AF4h', 'AF2', 'AF2h', 'AF1h', 'AF1', 'AF3h', 'AF3', 'AF5h', 'AF5', 'AF7h']
+    # right part
+    names = ['AF8h', 'AF6', 'AF6h', 'AF4', 'AF4h', 'AF2', 'AF2h']
     start_point = all_landmarks['AF8']
     end_point = all_landmarks['AF7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFz']], vertices[end_point]-vertices[all_landmarks['AFz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['AFz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['AF1h', 'AF1', 'AF3h', 'AF3', 'AF5h', 'AF5', 'AF7h']
+    start_point = all_landmarks['AF8']
+    end_point = all_landmarks['AF7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFz']], vertices[end_point]-vertices[all_landmarks['AFz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['AFz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -683,12 +893,27 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
         all_landmarks[name] = added_points[idx]
     ###################################################################
     # coronal line through AFp8 AFpz AFp7
-    names = ['AFp8h', 'AFp6', 'AFp6h', 'AFp4', 'AFp4h', 'AFp2', 'AFp2h', 'AFp1h', 'AFp1', 'AFp3h', 'AFp3', 'AFp5h', 'AFp5', 'AFp7h']
+    # right part
+    names = ['AFp8h', 'AFp6', 'AFp6h', 'AFp4', 'AFp4h', 'AFp2', 'AFp2h']
     start_point = all_landmarks['AFp8']
     end_point = all_landmarks['AFp7']
     plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFpz']], vertices[end_point]-vertices[all_landmarks['AFpz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-    el_position, el_faces = length_percentiles([ 6.25, 12.5 , 18.75, 25.  , 31.25, 37.5 , 43.75, 56.25, 62.5 , 68.75, 75.  , 81.25, 87.5 , 93.75], path, path_faces)
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['AFpz'])
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
+
+    vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
+
+    assert len(names) == len(el_position)
+    for idx, name in enumerate(names):
+        all_landmarks[name] = added_points[idx]
+    
+    # left part
+    names = ['AFp1h', 'AFp1', 'AFp3h', 'AFp3', 'AFp5h', 'AFp5', 'AFp7h']
+    start_point = all_landmarks['AFp8']
+    end_point = all_landmarks['AFp7']
+    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFpz']], vertices[end_point]-vertices[all_landmarks['AFpz']])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['AFpz'], end_point=end_point)
+    el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
 
@@ -865,45 +1090,64 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     ###################################################################
     # short posterior coronal lines
     for i in range(subdivisions+1, 2*subdivisions):
+        # right part
         start_point = right_transverse[i]
         end_point = left_transverse[i]
         plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-        el_position, el_faces = length_percentiles(np.linspace(0,100,4*subdivisions, endpoint = False)[1:], path, path_faces)
-        vertices, faces, added_points = add_points(vertices, faces, el_position[:2*subdivisions-1], el_faces[:2*subdivisions-1])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=sagittal_midline[i])
+        el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
+        vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
-        # all_pos.append(np.arange(vertices.shape[0]-len(el_position[:2*subdivisions-1]), vertices.shape[0]))
-        vertices, faces, added_points = add_points(vertices, faces, el_position[2*subdivisions:], el_faces[2*subdivisions:])
+        
+        # left part
+        start_point = right_transverse[i]
+        end_point = left_transverse[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=sagittal_midline[i], end_point=end_point)
+        el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
+        vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
-        # all_pos.append(np.arange(vertices.shape[0]-len(el_position[2*subdivisions:]), vertices.shape[0]))
     ###################################################################
     # short anterior coronal lines
     for i in range(subdivisions+1, 2*subdivisions):
         i+=1
+        
+        # right part
         start_point = right_transverse[-i]
         end_point = left_transverse[-i]
         plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[-i]], vertices[end_point]-vertices[sagittal_midline[-i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-        el_position, el_faces = length_percentiles(np.linspace(0,100,4*subdivisions, endpoint = False)[1:], path, path_faces)
-        vertices, faces, added_points = add_points(vertices, faces, el_position[:2*subdivisions-1], el_faces[:2*subdivisions-1])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=sagittal_midline[-i])
+        el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
+        vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
-        # all_pos.append(np.arange(vertices.shape[0]-len(el_position[:2*subdivisions-1]), vertices.shape[0]))
-        vertices, faces, added_points = add_points(vertices, faces, el_position[2*subdivisions:], el_faces[2*subdivisions:])
+        
+        # left part
+        start_point = right_transverse[-i]
+        end_point = left_transverse[-i]
+        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[-i]], vertices[end_point]-vertices[sagittal_midline[-i]])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=sagittal_midline[-i], end_point=end_point)
+        el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
+        vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
-        # all_pos.append(np.arange(vertices.shape[0]-len(el_position[2*subdivisions:]), vertices.shape[0]))
     ###################################################################
     for i in range(2*subdivisions, 8*subdivisions+1):
+        # right part
         start_point = right_transverse[i]
         end_point = left_transverse[i]
         plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
-        el_position, el_faces = length_percentiles(np.linspace(0,100,8*subdivisions, endpoint = False)[1:], path, path_faces)
-        vertices, faces, added_points = add_points(vertices, faces, el_position[:4*subdivisions-1], el_faces[:4*subdivisions-1])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=sagittal_midline[i])
+        el_position, el_faces = length_percentiles(np.linspace(0,100,4*subdivisions, endpoint = False)[1:], path, path_faces)
+        vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
-        # all_pos.append(np.arange(vertices.shape[0]-len(el_position[:4*subdivisions-1]), vertices.shape[0]))
-        vertices, faces, added_points = add_points(vertices, faces, el_position[4*subdivisions:], el_faces[4*subdivisions:])
+        
+        # left part
+        start_point = right_transverse[i]
+        end_point = left_transverse[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=sagittal_midline[i], end_point=end_point)
+        el_position, el_faces = length_percentiles(np.linspace(0,100,4*subdivisions, endpoint = False)[1:], path, path_faces)
+        vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
-        # all_pos.append(np.arange(vertices.shape[0]-len(el_position[4*subdivisions:]), vertices.shape[0]))
     
     
     all_pos = np.concatenate(all_pos)
@@ -976,13 +1220,14 @@ def create_random_montage(vertices, faces, fiducials,  min_dist = None, num_elec
 
     print('Performing Sampling on the mesh')
     if sampling == 'poisson':
-        newverts, newfac, sampled_electrodes = poisson_disk_sampling(newverts, newfac, min_dist=min_dist, num_points = num_electrodes, generator = generator, remesh = False)
+        newverts, newfac, sampled_electrodes, sampled_faces = poisson_disk_sampling(newverts, newfac, min_dist=min_dist, num_points = num_electrodes, return_original_faces = True, generator = generator, remesh = False)
     elif sampling == 'uniform':
-        newverts, newfac, sampled_electrodes = uniform_sampling(newverts, newfac, num_points = num_electrodes, remesh = False, generator = generator)
-
+        newverts, newfac, sampled_electrodes, sampled_faces = uniform_sampling(newverts, newfac, num_points = num_electrodes, remesh = False, return_original_faces = True, generator = generator)
+        
     # project sampled points on old mesh
-    points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
-    vertices, faces, all_pos = add_points(vertices, faces, points, picked_faces)
+    print('Projecting sampled points on original mesh')
+    # points, picked_faces = closest_faces(newverts[sampled_electrodes], vertices, faces, return_faces=True)
+    vertices, faces, all_pos = add_points(vertices, faces, newverts[sampled_electrodes], sampled_faces)
 
     if not return_indices:
         out = (vertices[all_pos],)

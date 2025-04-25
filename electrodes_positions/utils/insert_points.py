@@ -1,30 +1,40 @@
 import numpy as np
 from .mesh_utils import edge_lengths
 
-def add_internal_points(vertices, faces, sampled_points, sampled_faces):
+def add_internal_points(vertices, faces, sampled_points, sampled_faces, face_tracker = None):
     # add sampled points and faces to the mesh
     # make sure points are internal to the faces (and not on the boundary)
     # generally faster than add_points()
     
-    # NOTE: this function can only add one point per triangle at a time!
-    if np.any(np.unique(sampled_faces, return_counts = True)[1]>1):
-        raise ValueError('add_internal_points() only works when there is a single point per triangle to be added, found more than once here. Try refining the mesh or use add_points().')
+    if len(sampled_points)>0:
+        # NOTE: this function can only add one point per triangle at a time!
+        if np.any(np.unique(sampled_faces, return_counts = True)[1]>1):
+            raise ValueError('add_internal_points() only works when there is a single point per triangle to be added, found more than once here. Try refining the mesh or use add_points().')
+        
+        sampled_points_idx = np.arange(vertices.shape[0], vertices.shape[0] + sampled_points.shape[0])
+        vertices = np.concatenate([vertices, sampled_points])
+        
+        # add the faces
+        # B C D
+        t1 = np.concatenate([faces[sampled_faces,1:], sampled_points_idx[:,np.newaxis]], axis = -1)
+        # A D C
+        t2 = np.concatenate([faces[sampled_faces,:1], sampled_points_idx[:,np.newaxis], faces[sampled_faces,2:]], axis = -1)
+        
+        faces = np.concatenate([faces, t1, t2])
+        
+        # replace first face
+        faces[sampled_faces,2] = sampled_points_idx
+        
+        if face_tracker is not None:
+            current_tracker = np.arange(len(faces))
+            current_tracker[sampled_faces] = sampled_faces
+            current_tracker[-2*len(sampled_faces):] = np.tile(sampled_faces, 2)
+            face_tracker.update_tracker(current_tracker)
+    else:
+        sampled_points_idx = []
     
-    sampled_points_idx = np.arange(vertices.shape[0], vertices.shape[0] + sampled_points.shape[0])
-    vertices = np.concatenate([vertices, sampled_points])
-    
-    # add the faces
-    # B C D
-    t1 = np.concatenate([faces[sampled_faces,1:], sampled_points_idx[:,np.newaxis]], axis = -1)
-    # A D C
-    t2 = np.concatenate([faces[sampled_faces,:1], sampled_points_idx[:,np.newaxis], faces[sampled_faces,2:]], axis = -1)
-    
-    faces = np.concatenate([faces, t1, t2])
-    
-    # replace first face
-    faces[sampled_faces,2] = sampled_points_idx
-    
-    return vertices, faces
+    return vertices, faces, sampled_points_idx
+        
 
 def find_close_points(vertices, points):
     # checks if any point in points is very close to a vertex
@@ -58,7 +68,7 @@ def collinear(A,B,C, epsilon = 1e-2, return_value = False):
     return out
 
 
-def _add_collinear_point(A,B,C, vertices, faces, sampled_point, sampled_face):
+def _add_collinear_point(A,B,C, vertices, faces, sampled_point, sampled_face, face_tracker = None):
     # adds a point to face [A B C] by splitting edge [A B] a placing the sampled point in the middle
     
     D = vertices.shape[0]
@@ -69,25 +79,48 @@ def _add_collinear_point(A,B,C, vertices, faces, sampled_point, sampled_face):
     
     
     second_face = np.nonzero((np.sum(np.any(faces[np.newaxis] == np.array([A,B])[...,np.newaxis, np.newaxis], axis = 0), axis = -1) == 2)&np.logical_not(np.any(faces == C, axis = -1)))[0]
-    E = np.setdiff1d(faces[second_face], np.array([A,B]))[0]
-    
-    # D B C
-    t1 = np.array([[D,B,C]])
-    # B D E
-    t2 = np.array([[B,D,E]])
-    
-    faces = np.concatenate([faces, t1, t2])
-    faces[sampled_face] = [A,D,C]
-    faces[second_face] = [A,E,D]
-    
+    if len(second_face)>0:
+        second_face = second_face[0]
+        E = np.setdiff1d(faces[second_face], np.array([A,B]))[0]
+        
+        # D B C
+        t1 = np.array([[D,B,C]])
+        # B D E
+        t2 = np.array([[B,D,E]])
+        
+        faces = np.concatenate([faces, t1, t2])
+        faces[sampled_face] = [A,D,C]
+        faces[second_face] = [A,E,D]
+        
+        if face_tracker is not None:
+            current_tracker = np.arange(len(faces))
+            current_tracker[sampled_face] = sampled_face
+            current_tracker[second_face] = second_face
+            current_tracker[-2] = sampled_face
+            current_tracker[-1] = second_face
+            
+            face_tracker.update_tracker(current_tracker)
+    else:
+        # D B C
+        t1 = np.array([[D,B,C]])
+        
+        faces = np.concatenate([faces, t1])
+        faces[sampled_face] = [A,D,C]
+        
+        if face_tracker is not None:
+            current_tracker = np.arange(len(faces))
+            current_tracker[sampled_face] = sampled_face
+            current_tracker[-1] = sampled_face
+            
+            face_tracker.update_tracker(current_tracker)
+
     return vertices, faces, D
 
-def add_single_point(vertices, faces, sampled_point, sampled_face):
+def add_single_point(vertices, faces, sampled_point, sampled_face, face_tracker = None):
     # adds a single point to the mesh
     # if collinear, it adds it by splitting the corresponding edge
     
     # WARNING: you should check if any point is equal to a vertex!!
-    
     
     A = faces[sampled_face, 0]
     B = faces[sampled_face, 1]
@@ -99,16 +132,18 @@ def add_single_point(vertices, faces, sampled_point, sampled_face):
         
         # adds the point to the closest edge
         if which_coll==0:
-            return _add_collinear_point(A,B,C,vertices, faces, sampled_point, sampled_face)
+            return _add_collinear_point(A,B,C,vertices, faces, sampled_point, sampled_face, face_tracker=face_tracker)
         elif which_coll == 1:
-            return _add_collinear_point(B,C,A,vertices, faces, sampled_point, sampled_face)
+            return _add_collinear_point(B,C,A,vertices, faces, sampled_point, sampled_face, face_tracker=face_tracker)
         elif which_coll==2:
-            return _add_collinear_point(C,A,B,vertices, faces, sampled_point, sampled_face)
+            return _add_collinear_point(C,A,B,vertices, faces, sampled_point, sampled_face, face_tracker=face_tracker)
     
     # if here, the point is not collinear and can be added safely
-    return add_internal_points(vertices, faces, sampled_point[np.newaxis], sampled_face[np.newaxis])+(vertices.shape[0],)
+    vertices, faces, added_pt = add_internal_points(vertices, faces, sampled_point[np.newaxis], sampled_face[np.newaxis], face_tracker=face_tracker)
+    added_pt = added_pt[0]  # reduce dimensions
+    return vertices, faces, added_pt
 
-def _safe_add_points(vertices, faces, sampled_points, sampled_faces):
+def _safe_add_points(vertices, faces, sampled_points, sampled_faces, face_tracker = None):
     # subroutine of add_points(), to safely add points (duh..)
     
     nfaces = len(faces)
@@ -122,7 +157,7 @@ def _safe_add_points(vertices, faces, sampled_points, sampled_faces):
     added_points[unique_indices] += np.arange(len(unique_indices))
     
     # add only first occurence of points
-    vertices, faces = add_internal_points(vertices, faces, sampled_points[unique_indices], sampled_faces[unique_indices])
+    vertices, faces, _ = add_internal_points(vertices, faces, sampled_points[unique_indices], sampled_faces[unique_indices], face_tracker=face_tracker)
     
     # select points that need to be projected again
     left_out_points = np.setdiff1d(np.arange(len(sampled_points)), unique_indices)
@@ -137,7 +172,7 @@ def _safe_add_points(vertices, faces, sampled_points, sampled_faces):
         # sampled_facestrue = closest_faces(sampled_points, vertices, faces, return_faces=True)[1]
         
         
-        vertices, faces, newly_added_pts =  add_points(vertices, faces, sampled_points, sampled_faces)
+        vertices, faces, newly_added_pts = add_points(vertices, faces, sampled_points, sampled_faces, return_face_tracker=False, face_tracker = face_tracker)
         added_points[left_out_points] = newly_added_pts
     
     return vertices, faces, added_points
@@ -158,9 +193,12 @@ def compute_collinearity_matrix(vertices, faces, sampled_points, sampled_faces):
     return collinearity_matrix
 
 
-def add_points(vertices, faces, sampled_points, sampled_faces):
+def add_points(vertices, faces, sampled_points, sampled_faces, return_face_tracker = False, face_tracker = None):
     # adds points to the mesh "safely", i.e. by splitting edges and joining to closest vertex if necessary
     nfaces = len(faces)
+    
+    if return_face_tracker and (face_tracker is None):
+        face_tracker = FaceTracker(nfaces)
     
     which_vertex = np.any(find_close_points(vertices, sampled_points), axis = -1)
     
@@ -172,7 +210,7 @@ def add_points(vertices, faces, sampled_points, sampled_faces):
     
     
     # add normal_points
-    vertices, faces, newly_added_points = _safe_add_points(vertices, faces, sampled_points[which_not_collinear], sampled_faces[which_not_collinear])
+    vertices, faces, newly_added_points = _safe_add_points(vertices, faces, sampled_points[which_not_collinear], sampled_faces[which_not_collinear], face_tracker = face_tracker)
     
     
     # save position of added points
@@ -214,10 +252,13 @@ def add_points(vertices, faces, sampled_points, sampled_faces):
             sampled_face = faces_to_check[sampled_face]
             
             # sampled_facetrue = closest_faces(sampled_points[[i]], vertices, faces, return_faces=True)[1][0]
-            vertices, faces, added_pt = add_single_point(vertices, faces, sampled_points[i], sampled_face)
+            vertices, faces, added_pt = add_single_point(vertices, faces, sampled_points[i], sampled_face, face_tracker=face_tracker)
             added_points[which_collinear[i]] = added_pt
     
-    return vertices, faces, added_points
+    if not return_face_tracker:
+        return vertices, faces, added_points
+    else:
+        return vertices, faces, added_points, face_tracker
 
 
 def closest_faces(points, vertices, faces, return_faces = False):
