@@ -1,4 +1,5 @@
 import numpy as np
+import trimesh
 
 def faces_to_pyvista(faces):
     # converts faces array to pyvista
