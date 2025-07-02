@@ -44,3 +44,29 @@ def extract_submesh(vertices, faces, new_vertices, return_faces = False):
         return vertices[new_vertices], new_faces, orig_faces
     else:
         return vertices[new_vertices], new_faces
+
+def compute_face_normals(vertices, faces, return_area = False):
+    A = vertices[faces[:,0]]
+    B = vertices[faces[:,1]]
+    C = vertices[faces[:,2]]
+    
+    
+    if not return_area:
+        return np.cross(B-A, C-A)/np.linalg.norm(np.cross(B-A, C-A), axis = -1, keepdims=True)
+    else:
+        norms = np.linalg.norm(np.cross(B-A, C-A), axis = -1, keepdims=True)
+        return np.cross(B-A, C-A)/norms, norms[:,0]/2
+
+def compute_vertex_normals(vertices, faces, normalized = True):
+    face_normals, face_areas = compute_face_normals(vertices, faces, return_area = True)
+
+    face_weights = trimesh.Trimesh(vertices=vertices, faces=faces).faces_sparse.multiply(face_areas)
+
+    vertex_normals = np.array(np.concatenate([face_weights.multiply(face_normals[:,0]).sum(axis = 1),
+    face_weights.multiply(face_normals[:,1]).sum(axis = 1),
+    face_weights.multiply(face_normals[:,2]).sum(axis = 1)], axis = 1))
+
+    if normalized:
+        return vertex_normals/np.linalg.norm(vertex_normals, axis = 1, keepdims = True)
+    else:
+        return vertex_normals
