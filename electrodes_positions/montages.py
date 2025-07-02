@@ -9,7 +9,7 @@ from .utils.geometry import create_rotation_matrix
 from .utils.insert_points import closest_faces
 from .utils.point_picking import optimal_sagittal_plane
 from .utils.point_picking import compute_path
-from .utils.mesh_utils import extract_submesh
+from .utils.mesh_utils import extract_submesh, compute_vertex_normals
 
 _all_montages = {
     '10-20':['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'T7', 'C3', 'Cz', 'C4', 'T8', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'O2'],
@@ -301,7 +301,7 @@ def path_length(path):
     
     return np.sum(lengths)
 
-def create_standard_montage(vertices, faces, fiducials, system = '10-10', return_indices = False):
+def create_standard_montage(vertices, faces, fiducials, system = '10-10', return_indices = False, return_normals = False):
     # this function returns the position of the electrodes placed on the input head according to the input international system
     # possible values are:
     # '10-20': 19 electrodes according to traditional 10-20 system, see Mecarelli - Clinical EEG, pag. 37, Fig 4.2a
@@ -938,7 +938,13 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     if not return_indices:
         montage = {k:vertices[all_landmarks[k]] for k in montage}
 
-        return montage
+        if return_normals:
+            all_normals = compute_vertex_normals(vertices, faces, normalized = True)
+            normals = {k:all_normals[all_landmarks[k]] for k in montage}
+            
+            return montage, normals
+        else:
+            return montage
     else:
         montage = {k:all_landmarks[k] for k in montage}
 
