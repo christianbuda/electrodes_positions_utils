@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='electrodes_positions',
-    version='1.0',
+    version='1.1',
     url='https://github.com/christianbuda/electrodes_positions_utils',
     author='Christian Buda',
     author_email='chrichri975@gmail.com',
