@@ -93,7 +93,7 @@ def length_percentiles(percentiles, path, path_faces):
 
     return points, faces
 
-def halve_path(path, path_faces, halfpoint, half = 'first'):
+def halve_path(halfpoint, path, path_faces, half = 'first'):
     assert half in ['first', 'last'], "half must be one of ['first', 'last']"
     
     halfpoint = np.argmin(np.linalg.norm(halfpoint-path, axis = -1))
