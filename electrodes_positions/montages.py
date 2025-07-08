@@ -93,6 +93,23 @@ def length_percentiles(percentiles, path, path_faces):
 
     return points, faces
 
+def halve_path(path, path_faces, halfpoint, half = 'first'):
+    assert half in ['first', 'last'], "half must be one of ['first', 'last']"
+    
+    halfpoint = np.argmin(np.linalg.norm(halfpoint-path, axis = -1))
+    
+    if half == 'first':
+        path = path[:halfpoint+1]
+        path_faces = path_faces[:halfpoint]
+    elif half == 'last':
+        path = path[halfpoint:]
+        path_faces = path_faces[halfpoint:]
+    else:
+        raise ValueError("half must be one of ['first', 'last']")
+    
+    return path, path_faces
+    
+
 def get_upper_path(vertices, faces, path_plane_normal, start_point, end_point, lower = False):
     # computes the path given the mesh and the plane
     # cuts the lower part of the path by default
@@ -375,7 +392,8 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['aboveRPA', 'aboveLPA']
     start_point = all_landmarks['RPA']
     end_point = all_landmarks['LPA']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
+    center_point = all_landmarks['Cz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([10,90], path, path_faces)
 
@@ -389,7 +407,8 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['O1h', 'O1', 'POO7', 'PO7', 'PPO7', 'P7', 'TPP7', 'TP7', 'TTP7', 'T7', 'FTT7', 'FT7', 'FFT7', 'F7', 'AFF7', 'AF7', 'AFp7', 'Fp1', 'Fp1h']
     start_point = all_landmarks['Oz']
     end_point = all_landmarks['Fpz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['aboveLPA']], vertices[end_point]-vertices[all_landmarks['aboveLPA']])
+    center_point = all_landmarks['aboveLPA']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], path, path_faces)
 
@@ -403,7 +422,8 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['O2h', 'O2', 'POO8', 'PO8', 'PPO8', 'P8', 'TPP8', 'TP8', 'TTP8', 'T8', 'FTT8', 'FT8', 'FFT8', 'F8', 'AFF8', 'AF8', 'AFp8', 'Fp2', 'Fp2h']
     start_point = all_landmarks['Oz']
     end_point = all_landmarks['Fpz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['aboveRPA']], vertices[end_point]-vertices[all_landmarks['aboveRPA']])
+    center_point = all_landmarks['aboveRPA']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], path, path_faces)
 
@@ -418,8 +438,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['T8h', 'C6', 'C6h', 'C4', 'C4h', 'C2', 'C2h']
     start_point = all_landmarks['T8']
     end_point = all_landmarks['T7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['Cz'])
+    center_point = all_landmarks['Cz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -432,8 +454,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['C1h', 'C1', 'C3h', 'C3', 'C5h', 'C5', 'T7h']
     start_point = all_landmarks['T8']
     end_point = all_landmarks['T7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['Cz'], end_point=end_point)
+    center_point = all_landmarks['Cz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -463,7 +487,8 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['OI1h', 'OI1', 'POO9h', 'PO9h', 'PPO9h', 'P9h', 'TPP9h', 'TP9h', 'TTP9h', 'T9h', 'FTT9h', 'FT9h', 'FFT9h', 'F9h', 'AFF9h', 'AF9h', 'AFp9h', 'FpI1', 'FpI1h']
     start_point = all_landmarks['OIz']
     end_point = all_landmarks['FpIz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['T9h_line']], vertices[end_point]-vertices[all_landmarks['T9h_line']])
+    center_point = all_landmarks['T9h_line']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], path, path_faces)
 
@@ -477,7 +502,8 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['OI2h', 'OI2', 'POO10h', 'PO10h', 'PPO10h', 'P10h', 'TPP10h', 'TP10h', 'TTP10h', 'T10h', 'FTT10h', 'FT10h', 'FFT10h', 'F10h', 'AFF10h', 'AF10h', 'AFp10h', 'FpI2', 'FpI2h']
     start_point = all_landmarks['OIz']
     end_point = all_landmarks['FpIz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['T10h_line']], vertices[end_point]-vertices[all_landmarks['T10h_line']])
+    center_point = all_landmarks['T10h_line']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], path, path_faces)
 
@@ -491,7 +517,8 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['I1h', 'I1', 'POO9', 'PO9', 'PPO9', 'P9', 'TPP9', 'TP9', 'TTP9', 'T9', 'FTT9', 'FT9', 'FFT9', 'F9', 'AFF9', 'AF9', 'AFp9', 'N1', 'N1h']
     start_point = all_landmarks['Iz']
     end_point = all_landmarks['Nz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['T9_line']], vertices[end_point]-vertices[all_landmarks['T9_line']])
+    center_point = all_landmarks['T9_line']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], path, path_faces)
 
@@ -505,7 +532,8 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['I2h', 'I2', 'POO10', 'PO10', 'PPO10', 'P10', 'TPP10', 'TP10', 'TTP10', 'T10', 'FTT10', 'FT10', 'FFT10', 'F10', 'AFF10', 'AF10', 'AFp10', 'N2', 'N2h']
     start_point = all_landmarks['Iz']
     end_point = all_landmarks['Nz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['T10_line']], vertices[end_point]-vertices[all_landmarks['T10_line']])
+    center_point = all_landmarks['T10_line']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([ 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95], path, path_faces)
 
@@ -520,8 +548,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['POO8h', 'POO6', 'POO6h', 'POO4', 'POO4h', 'POO2', 'POO2h']
     start_point = all_landmarks['POO8']
     end_point = all_landmarks['POO7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POOz']], vertices[end_point]-vertices[all_landmarks['POOz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['POOz'])
+    center_point = all_landmarks['POOz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -534,8 +564,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['POO1h', 'POO1', 'POO3h', 'POO3', 'POO5h', 'POO5', 'POO7h']
     start_point = all_landmarks['POO8']
     end_point = all_landmarks['POO7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POOz']], vertices[end_point]-vertices[all_landmarks['POOz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['POOz'], end_point=end_point)
+    center_point = all_landmarks['POOz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -549,8 +581,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['PO8h', 'PO6', 'PO6h', 'PO4', 'PO4h', 'PO2', 'PO2h']
     start_point = all_landmarks['PO8']
     end_point = all_landmarks['PO7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POz']], vertices[end_point]-vertices[all_landmarks['POz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['POz'])
+    center_point = all_landmarks['POz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -563,8 +597,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['PO1h', 'PO1', 'PO3h', 'PO3', 'PO5h', 'PO5', 'PO7h']
     start_point = all_landmarks['PO8']
     end_point = all_landmarks['PO7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['POz']], vertices[end_point]-vertices[all_landmarks['POz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['POz'], end_point=end_point)
+    center_point = all_landmarks['POz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -578,8 +614,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['PPO8h', 'PPO6', 'PPO6h', 'PPO4', 'PPO4h', 'PPO2', 'PPO2h']
     start_point = all_landmarks['PPO8']
     end_point = all_landmarks['PPO7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['PPOz']], vertices[end_point]-vertices[all_landmarks['PPOz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['PPOz'])
+    center_point = all_landmarks['PPOz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -592,8 +630,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['PPO1h', 'PPO1', 'PPO3h', 'PPO3', 'PPO5h', 'PPO5', 'PPO7h']
     start_point = all_landmarks['PPO8']
     end_point = all_landmarks['PPO7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['PPOz']], vertices[end_point]-vertices[all_landmarks['PPOz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['PPOz'], end_point=end_point)
+    center_point = all_landmarks['PPOz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -607,8 +647,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['P8h', 'P6', 'P6h', 'P4', 'P4h', 'P2', 'P2h']
     start_point = all_landmarks['P8']
     end_point = all_landmarks['P7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Pz']], vertices[end_point]-vertices[all_landmarks['Pz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['Pz'])
+    center_point = all_landmarks['Pz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -621,8 +663,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['P1h', 'P1', 'P3h', 'P3', 'P5h', 'P5', 'P7h']
     start_point = all_landmarks['P8']
     end_point = all_landmarks['P7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Pz']], vertices[end_point]-vertices[all_landmarks['Pz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['Pz'], end_point=end_point)
+    center_point = all_landmarks['Pz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -636,8 +680,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['TPP8h', 'CPP6', 'CPP6h', 'CPP4', 'CPP4h', 'CPP2', 'CPP2h']
     start_point = all_landmarks['TPP8']
     end_point = all_landmarks['TPP7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPPz']], vertices[end_point]-vertices[all_landmarks['CPPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['CPPz'])
+    center_point = all_landmarks['CPPz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -650,8 +696,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['CPP1h', 'CPP1', 'CPP3h', 'CPP3', 'CPP5h', 'CPP5', 'TPP7h']
     start_point = all_landmarks['TPP8']
     end_point = all_landmarks['TPP7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPPz']], vertices[end_point]-vertices[all_landmarks['CPPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['CPPz'], end_point=end_point)
+    center_point = all_landmarks['CPPz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -665,8 +713,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['TP8h', 'CP6', 'CP6h', 'CP4', 'CP4h', 'CP2', 'CP2h']
     start_point = all_landmarks['TP8']
     end_point = all_landmarks['TP7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPz']], vertices[end_point]-vertices[all_landmarks['CPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['CPz'])
+    center_point = all_landmarks['CPz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -679,8 +729,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['CP1h', 'CP1', 'CP3h', 'CP3', 'CP5h', 'CP5', 'TP7h']
     start_point = all_landmarks['TP8']
     end_point = all_landmarks['TP7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CPz']], vertices[end_point]-vertices[all_landmarks['CPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['CPz'], end_point=end_point)
+    center_point = all_landmarks['CPz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -694,8 +746,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['TTP8h', 'CCP6', 'CCP6h', 'CCP4', 'CCP4h', 'CCP2', 'CCP2h']
     start_point = all_landmarks['TTP8']
     end_point = all_landmarks['TTP7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CCPz']], vertices[end_point]-vertices[all_landmarks['CCPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['CCPz'])
+    center_point = all_landmarks['CCPz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -708,8 +762,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['CCP1h', 'CCP1', 'CCP3h', 'CCP3', 'CCP5h', 'CCP5', 'TTP7h']
     start_point = all_landmarks['TTP8']
     end_point = all_landmarks['TTP7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['CCPz']], vertices[end_point]-vertices[all_landmarks['CCPz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['CCPz'], end_point=end_point)
+    center_point = all_landmarks['CCPz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -723,8 +779,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['FTT8h', 'FCC6', 'FCC6h', 'FCC4', 'FCC4h', 'FCC2', 'FCC2h']
     start_point = all_landmarks['FTT8']
     end_point = all_landmarks['FTT7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCCz']], vertices[end_point]-vertices[all_landmarks['FCCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['FCCz'])
+    center_point = all_landmarks['FCCz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -737,8 +795,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['FCC1h', 'FCC1', 'FCC3h', 'FCC3', 'FCC5h', 'FCC5', 'FTT7h']
     start_point = all_landmarks['FTT8']
     end_point = all_landmarks['FTT7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCCz']], vertices[end_point]-vertices[all_landmarks['FCCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['FCCz'], end_point=end_point)
+    center_point = all_landmarks['FCCz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -752,8 +812,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['FT8h', 'FC6', 'FC6h', 'FC4', 'FC4h', 'FC2', 'FC2h']
     start_point = all_landmarks['FT8']
     end_point = all_landmarks['FT7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCz']], vertices[end_point]-vertices[all_landmarks['FCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['FCz'])
+    center_point = all_landmarks['FCz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -766,8 +828,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['FC1h', 'FC1', 'FC3h', 'FC3', 'FC5h', 'FC5', 'FT7h']
     start_point = all_landmarks['FT8']
     end_point = all_landmarks['FT7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FCz']], vertices[end_point]-vertices[all_landmarks['FCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['FCz'], end_point=end_point)
+    center_point = all_landmarks['FCz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -781,8 +845,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['FFT8h', 'FFC6', 'FFC6h', 'FFC4', 'FFC4h', 'FFC2', 'FFC2h']
     start_point = all_landmarks['FFT8']
     end_point = all_landmarks['FFT7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FFCz']], vertices[end_point]-vertices[all_landmarks['FFCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['FFCz'])
+    center_point = all_landmarks['FFCz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -795,8 +861,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['FFC1h', 'FFC1', 'FFC3h', 'FFC3', 'FFC5h', 'FFC5', 'FFT7h']
     start_point = all_landmarks['FFT8']
     end_point = all_landmarks['FFT7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['FFCz']], vertices[end_point]-vertices[all_landmarks['FFCz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['FFCz'], end_point=end_point)
+    center_point = all_landmarks['FFCz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -810,8 +878,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['F8h', 'F6', 'F6h', 'F4', 'F4h', 'F2', 'F2h']
     start_point = all_landmarks['F8']
     end_point = all_landmarks['F7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Fz']], vertices[end_point]-vertices[all_landmarks['Fz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['Fz'])
+    center_point = all_landmarks['Fz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -824,8 +894,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['F1h', 'F1', 'F3h', 'F3', 'F5h', 'F5', 'F7h']
     start_point = all_landmarks['F8']
     end_point = all_landmarks['F7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Fz']], vertices[end_point]-vertices[all_landmarks['Fz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['Fz'], end_point=end_point)
+    center_point = all_landmarks['Fz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -839,8 +911,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['AFF8h', 'AFF6', 'AFF6h', 'AFF4', 'AFF4h', 'AFF2', 'AFF2h']
     start_point = all_landmarks['AFF8']
     end_point = all_landmarks['AFF7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFFz']], vertices[end_point]-vertices[all_landmarks['AFFz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['AFFz'])
+    center_point = all_landmarks['AFFz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -853,8 +927,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['AFF1h', 'AFF1', 'AFF3h', 'AFF3', 'AFF5h', 'AFF5', 'AFF7h']
     start_point = all_landmarks['AFF8']
     end_point = all_landmarks['AFF7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFFz']], vertices[end_point]-vertices[all_landmarks['AFFz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['AFFz'], end_point=end_point)
+    center_point = all_landmarks['AFFz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -868,8 +944,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['AF8h', 'AF6', 'AF6h', 'AF4', 'AF4h', 'AF2', 'AF2h']
     start_point = all_landmarks['AF8']
     end_point = all_landmarks['AF7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFz']], vertices[end_point]-vertices[all_landmarks['AFz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['AFz'])
+    center_point = all_landmarks['AFz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -882,8 +960,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['AF1h', 'AF1', 'AF3h', 'AF3', 'AF5h', 'AF5', 'AF7h']
     start_point = all_landmarks['AF8']
     end_point = all_landmarks['AF7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFz']], vertices[end_point]-vertices[all_landmarks['AFz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['AFz'], end_point=end_point)
+    center_point = all_landmarks['AFz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -897,8 +977,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['AFp8h', 'AFp6', 'AFp6h', 'AFp4', 'AFp4h', 'AFp2', 'AFp2h']
     start_point = all_landmarks['AFp8']
     end_point = all_landmarks['AFp7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFpz']], vertices[end_point]-vertices[all_landmarks['AFpz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=all_landmarks['AFpz'])
+    center_point = all_landmarks['AFpz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -911,8 +993,10 @@ def create_standard_montage(vertices, faces, fiducials, system = '10-10', return
     names = ['AFp1h', 'AFp1', 'AFp3h', 'AFp3', 'AFp5h', 'AFp5', 'AFp7h']
     start_point = all_landmarks['AFp8']
     end_point = all_landmarks['AFp7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['AFpz']], vertices[end_point]-vertices[all_landmarks['AFpz']])
-    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=all_landmarks['AFpz'], end_point=end_point)
+    center_point = all_landmarks['AFpz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+    path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+    path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
     el_position, el_faces = length_percentiles([12.5, 25, 37.5, 50, 62.5, 75, 87.5], path, path_faces)
 
     vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -977,7 +1061,8 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     # sagittal line through Iz Cz Nz
     start_point = all_landmarks['Iz']
     end_point = all_landmarks['Nz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
+    center_point = all_landmarks['Cz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles(np.linspace(0,100,10*subdivisions, endpoint = False)[1:], path, path_faces)
 
@@ -996,7 +1081,8 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     names = ['aboveRPA', 'aboveLPA']
     start_point = all_landmarks['RPA']
     end_point = all_landmarks['LPA']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
+    center_point = all_landmarks['Cz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles([10,90], path, path_faces)
     
@@ -1009,7 +1095,8 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     # left transverse line through Oz aboveLPA Fpz
     start_point = all_landmarks['Oz']
     end_point = all_landmarks['Fpz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['aboveLPA']], vertices[end_point]-vertices[all_landmarks['aboveLPA']])
+    center_point = all_landmarks['aboveLPA']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles(np.linspace(0,100,10*subdivisions, endpoint = False)[1:], path, path_faces)
 
@@ -1023,7 +1110,8 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     # right transverse line through Oz aboveRPA Fpz
     start_point = all_landmarks['Oz']
     end_point = all_landmarks['Fpz']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['aboveRPA']], vertices[end_point]-vertices[all_landmarks['aboveRPA']])
+    center_point = all_landmarks['aboveRPA']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
     el_position, el_faces = length_percentiles(np.linspace(0,100,10*subdivisions, endpoint = False)[1:], path, path_faces)
 
@@ -1037,7 +1125,8 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     # add positions below Oz
     start_point = all_landmarks['T8']
     end_point = all_landmarks['T7']
-    plane_normal = np.cross(vertices[start_point]-vertices[all_landmarks['Cz']], vertices[end_point]-vertices[all_landmarks['Cz']])
+    center_point = all_landmarks['Cz']
+    plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
     path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
 
     # store 10% of the length of the previous (upper) path
@@ -1062,7 +1151,8 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     for i in range(subdivisions):
         start_point = sagittal_midline[i]
         end_point = sagittal_midline[-i-1]
-        plane_normal = np.cross(vertices[start_point]-vertices[left_belowline[i]], vertices[end_point]-vertices[left_belowline[i]])
+        center_point = left_belowline[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
         path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
         el_position, el_faces = length_percentiles(np.linspace(0,100,10*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -1077,7 +1167,8 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
     for i in range(subdivisions):
         start_point = sagittal_midline[i]
         end_point = sagittal_midline[-i-1]
-        plane_normal = np.cross(vertices[start_point]-vertices[right_belowline[i]], vertices[end_point]-vertices[right_belowline[i]])
+        center_point = right_belowline[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
         path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
         el_position, el_faces = length_percentiles(np.linspace(0,100,10*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
@@ -1093,8 +1184,10 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
         # right part
         start_point = right_transverse[i]
         end_point = left_transverse[i]
-        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=sagittal_midline[i])
+        center_point = sagittal_midline[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+        path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
         el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
@@ -1102,8 +1195,10 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
         # left part
         start_point = right_transverse[i]
         end_point = left_transverse[i]
-        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=sagittal_midline[i], end_point=end_point)
+        center_point = sagittal_midline[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+        path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
         el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
@@ -1115,8 +1210,10 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
         # right part
         start_point = right_transverse[-i]
         end_point = left_transverse[-i]
-        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[-i]], vertices[end_point]-vertices[sagittal_midline[-i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=sagittal_midline[-i])
+        center_point = sagittal_midline[-i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+        path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
         el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
@@ -1124,8 +1221,10 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
         # left part
         start_point = right_transverse[-i]
         end_point = left_transverse[-i]
-        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[-i]], vertices[end_point]-vertices[sagittal_midline[-i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=sagittal_midline[-i], end_point=end_point)
+        center_point = sagittal_midline[-i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+        path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
         el_position, el_faces = length_percentiles(np.linspace(0,100,2*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
@@ -1134,8 +1233,10 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
         # right part
         start_point = right_transverse[i]
         end_point = left_transverse[i]
-        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=sagittal_midline[i])
+        center_point = sagittal_midline[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+        path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'first')
         el_position, el_faces = length_percentiles(np.linspace(0,100,4*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
@@ -1143,8 +1244,10 @@ def create_custom_montage(vertices, faces, fiducials, subdivisions = None, perce
         # left part
         start_point = right_transverse[i]
         end_point = left_transverse[i]
-        plane_normal = np.cross(vertices[start_point]-vertices[sagittal_midline[i]], vertices[end_point]-vertices[sagittal_midline[i]])
-        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=sagittal_midline[i], end_point=end_point)
+        center_point = sagittal_midline[i]
+        plane_normal = np.cross(vertices[start_point]-vertices[center_point], vertices[end_point]-vertices[center_point])
+        path, path_faces = get_upper_path(vertices, faces, path_plane_normal=plane_normal, start_point=start_point, end_point=end_point)
+        path, path_faces = halve_path(vertices[center_point], path, path_faces, half = 'last')
         el_position, el_faces = length_percentiles(np.linspace(0,100,4*subdivisions, endpoint = False)[1:], path, path_faces)
         vertices, faces, added_points = add_points(vertices, faces, el_position, el_faces)
         all_pos.append(added_points)
