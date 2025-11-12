@@ -246,29 +246,10 @@ def optimal_sagittal_plane(NAS, IN, RPA, LPA):
     
     v = NAS - IN
     w = RPA - LPA
-    
-    # (a,b,c) is the target normal
-    
-    # impose that (a,b,c) is orthogonal to v
-    # since v[1] is nonzero (if the coordinate system is somewhat aligned with the head) we can compute:
-    f_b = lambda a,c: -(v[0]*a+v[2]*c)/v[1]
-    
-    # by imposing that a**2+b**2+c**2=1 and using the relationship above, we can find an equation for c
-    # in solving it, we choose the solution corresponding to the biggest a (since w should point in the x direction)
-    f_a = lambda c: (-v[0]*v[2]*c+np.sqrt(v[1]**2*(v[1]**2+v[0]**2-np.linalg.norm(v)**2*c**2)))/(v[1]**2+v[0]**2)
-    
-    # with the constraint above, only a range of values for c is allowed, this is defined by:
-    lim = np.sqrt(v[0]**2+v[1]**2)/np.linalg.norm(v)
-    lim -= lim/1000  # added for numerical tolerance
 
-    # we then want to minimize the dot product between (a,b,c) and w
-    obj = lambda c: -(f_a(c)*w[0]+f_b(f_a(c),c)*w[1]+c*w[2])
+    # this eliminates the component of w parallel to v
+    normal = np.cross(v, np.cross(w,v))
     
-    # in a perfect situation, v is orthogonal to w and the normal coincides with w, i.e. c = 0, which is our starting point
-    res = minimize(obj, x0 = 0, bounds = [(-lim, lim)])
+    normal /= np.linalg.norm(normal)
     
-    if res.success:
-        c = res.x
-        return np.array([f_a(c), f_b(f_a(c),c), c])[:,0]
-    else:
-        raise BaseException('Cannot find maximum alignment, something went horribly wrong, check wether the head is more or less aligned with a RAS system')
+    return normal
