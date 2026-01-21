@@ -41,21 +41,25 @@ def reorder_path(path, path_faces, start, end, rtol = 1e-5):
     reordered_path[0] = path[start[0][0], start[1][0]]
     reordered_path[1] = path[start[0][0], (start[1][0]+1)%2]
     reordered_faces[0] = path_faces[start[0][0]]
-    reordered_path[-1] = path[end[0][0], end[1][0]]
-    reordered_faces[-1] = path_faces[end[0][0]]
 
     uninserted[start[0][0]] = False
-    uninserted[end[0][0]] = False
-
+    
     for i in range(2,path.shape[0]):
-        where_next = np.nonzero(np.all(np.isclose(path[uninserted], reordered_path[i-1], rtol = rtol), axis = -1))
+        if rtol is not None:
+            where_next = np.nonzero(np.all(np.isclose(path[uninserted], reordered_path[i-1], rtol = rtol), axis = -1))
+        else:
+            where_next = np.linalg.norm(path[uninserted] - reordered_path[i-1], axis = -1).argmin()
+            # the np.newaxis trick is to mantain consistency in the shape of where_next with the np.nonzero case
+            where_next = np.array(np.unravel_index(where_next, path.shape[:-1]))[:,np.newaxis]
         old_index = new_indices[uninserted][where_next[0][0]]
         reordered_path[i] = path[old_index, (where_next[1][0]+1)%2]
         reordered_faces[i-1] = path_faces[old_index]
         uninserted[old_index] = False
+        if old_index == end[0][0]:
+            break
 
-    # consistency check
-    assert np.allclose(reordered_path[-2], path[end[0][0], (end[1][0]+1)%2], rtol = rtol), 'Penultimate point mismatch, something went wrong...'
+    reordered_path = reordered_path[:i+1]
+    reordered_faces = reordered_faces[:i]
     
     return reordered_path, reordered_faces
 
@@ -123,7 +127,7 @@ def get_upper_path(vertices, faces, path_plane_normal, start_point, end_point, l
     
     separation_plane = np.cross(path_plane_normal, vertices[end_point]-vertices[start_point])
     
-    # check if normal points up
+    # check if user wants lower path
     if lower:
         separation_plane *= -1
     
@@ -137,7 +141,7 @@ def get_upper_path(vertices, faces, path_plane_normal, start_point, end_point, l
     
     path, path_faces = trimesh.intersections.mesh_plane(trimesh.Trimesh(vertices=vertices, faces=faces), R@path_plane_normal, plane_center, return_faces=True)
 
-    # remove the part of the path that goes below the endpoints (i.e. the part that loops below the head)
+    # remove the part of the path that goes below the endpoints (e.g. the part that loops below the head)
     path_mask = np.all(path[:,:,2]>=vertices[[end_point, start_point],2].min(), axis = -1)
 
     path = path[path_mask]
@@ -224,7 +228,7 @@ def get_upper_path(vertices, faces, path_plane_normal, start_point, end_point, l
     
     where_start = np.nonzero(start_segments)
     where_end = np.nonzero(end_segments)
-
+    
     # find rtol such that path is consistent
     rtol = 1e-20
     prev_rtol = 1
@@ -240,7 +244,7 @@ def get_upper_path(vertices, faces, path_plane_normal, start_point, end_point, l
                 if i == where_end[0][0] and j == where_end[1][0]:
                     continue
                 
-                num_eq = np.all(np.isclose(path, path[i,j], rtol = 1e-7), axis = -1).sum()
+                num_eq = np.all(np.isclose(path, path[i,j], rtol = rtol), axis = -1).sum()
                 if num_eq > 2:
                     restart = True
                     if prev_rtol >= rtol:
@@ -258,9 +262,10 @@ def get_upper_path(vertices, faces, path_plane_normal, start_point, end_point, l
                         rtol = (prev_rtol + rtol)/2
                         prev_rtol = 2*rtol-prev_rtol
                 # print(f'index {i} position {j}, amount {np.all(np.isclose(path, path[i,j]), axis = -1).sum()}')
-        if iter > 1000:
-            raise BaseException('Path is not well formed, found more than one terminal segment! Either try increasing the maximum number of iteration to find the optimal rtol, or check somewhere else for errors.')
-        
+        if iter > 50:
+            print('WARNING: Path is not well formed, probably some isolated points far away from the path are present. Proceeding with closest point strategy. If the output seems fine you can ignore the message.')
+            rtol = None
+            break
     path, path_faces = reorder_path(path, path_faces, start = where_start, end = where_end, rtol = rtol)
     
     path = (np.linalg.inv(R)@path.T).T
