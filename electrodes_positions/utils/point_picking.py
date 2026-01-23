@@ -157,7 +157,10 @@ def compute_path(points, vertices, faces):
 def select_feasible_positions(vertices, faces, outlines, landmarks, positions = None, project_outlines = False):
     # outputs the subset of positions from the input list that do not enter the paths given in input
     # paths are given as extra args
-    
+
+    if not isinstance(outlines, list):
+        outlines = [outlines]
+
     if project_outlines:
         for i, outline in enumerate(outlines):
             outlines[i] = project_pointcloud_on_pointcloud(outline, vertices, return_positions = False, return_indices = True)[0]
