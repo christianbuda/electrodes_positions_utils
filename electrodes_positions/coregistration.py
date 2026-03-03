@@ -224,7 +224,7 @@ def make_rigid_transform_with_scaling(params):
     return R,t
 
 
-def coregister_to_mesh(vertices, faces, electrode_positions, DoF = 7, projection = 'approximate', project_result = True):
+def coregister_to_mesh(vertices, faces, electrode_positions, DoF = 7, projection = 'approximate', project_result = True, return_transform = False):
     # this functions coregisters and projects the input electrode positions to the input mesh, and returns the coregistered positions
     
     # electrode_positions: dictionary of (names, position) or array of positions
@@ -237,6 +237,7 @@ def coregister_to_mesh(vertices, faces, electrode_positions, DoF = 7, projection
     #             'approximated' projects the point cloud on the vertices of the mesh, it takes a few seconds to run
     #             'exact' projects the point cloud exactly on the faces of the mesh, it takes a few minutes to run
     # project_result: whether to project the coregistered positions on the input mesh or not
+    # return_transform: whether to return the transform files alongside the transformed points
     
     if DoF not in [6,7,9,12]:
         raise ValueError('DoF must be one of [6,7,9,12]')
@@ -292,7 +293,10 @@ def coregister_to_mesh(vertices, faces, electrode_positions, DoF = 7, projection
         electrode_positions = dict(zip(labels, positions))
     else:
         electrode_positions = positions
-        
+
+    if return_transform:
+        return electrode_positions, (R,t)
+    
     return electrode_positions
 
 
