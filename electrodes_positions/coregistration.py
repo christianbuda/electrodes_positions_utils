@@ -227,7 +227,7 @@ def make_rigid_transform_with_scaling(params):
 def coregister_to_mesh(vertices, faces, electrode_positions, DoF = 7, projection = 'approximate', project_result = True):
     # this functions coregisters and projects the input electrode positions to the input mesh, and returns the coregistered positions
     
-    # electrode_positions: dictionary of (names, position)
+    # electrode_positions: dictionary of (names, position) or array of positions
     # DoF: integer in [6,7,9,12], determines the kind of transformation used in the coregistration
     #      DoF = 6:  rigid transformations
     #      DoF = 7:  rigid transformations with a global scaling factor
@@ -262,9 +262,12 @@ def coregister_to_mesh(vertices, faces, electrode_positions, DoF = 7, projection
     elif projection == 'exact':
         projection_function = avgsqdist_pointcloud_mesh
     
-    # unpack electrode positions
-    positions = np.array(list(electrode_positions.values()))
-    labels = list(electrode_positions.keys())
+    if isinstance(electrode_positions, dict):
+        # unpack electrode positions
+        positions = np.array(list(electrode_positions.values()))
+        labels = list(electrode_positions.keys())
+    else:
+        positions = electrode_positions
     
     # objective function to optimize
     def objective(params):
@@ -285,7 +288,12 @@ def coregister_to_mesh(vertices, faces, electrode_positions, DoF = 7, projection
         # project positions on the mesh vertices
         positions = closest_faces(positions, vertices, faces)
     
-    return dict(zip(labels, positions))
+    if isinstance(electrode_positions, dict):
+        electrode_positions = dict(zip(labels, positions))
+    else:
+        electrode_positions = positions
+        
+    return electrode_positions
 
 
 
