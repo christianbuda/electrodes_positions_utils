@@ -92,15 +92,23 @@ def transform_fiducials(positions, fiducials, scale_y = False, shear_y = False):
 
 def project_electrodes_on_mesh(electrode_positions, vertices, faces):
     # projects input electrode positions on the mesh
-    
-    # unpack electrode positions
-    positions = np.array(list(electrode_positions.values()))
-    labels = list(electrode_positions.keys())
+
+    if isinstance(electrode_positions, dict):
+        # unpack electrode positions
+        positions = np.array(list(electrode_positions.values()))
+        labels = list(electrode_positions.keys())
+    else:
+        positions = electrode_positions
     
     # project positions on the mesh vertices
     positions = closest_faces(positions, vertices, faces)
-    
-    return dict(zip(labels, positions))
+
+    if isinstance(electrode_positions, dict):
+        electrode_positions = dict(zip(labels, positions))
+    else:
+        electrode_positions = positions
+        
+    return electrode_positions
 
 
 def dist_point_mesh(P, vertices, faces):
