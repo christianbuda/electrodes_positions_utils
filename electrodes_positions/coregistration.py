@@ -573,6 +573,7 @@ def create_rotation_matrices(v, target = 'z'):
     # Compute rotation axes (cross product of v and target)
     axes = np.cross(v, target)
     axes_norm = np.linalg.norm(axes, axis = 1)
+    axes_norm += np.isclose(axes_norm, 0)/100
     axes /= axes_norm[...,np.newaxis]  # Normalize rotation axis
     
     # Compute rotation angle
